@@ -220,12 +220,10 @@ function initializeCodeByte(api) {
       } while (allCodebytesAreValid && start !== undefined)
 
       if (!allCodebytesAreValid) {
-        const warningModal = showModal("invalidCodebyteModal", {
+        showModal("invalidCodebyteModal", {
           model: this.model,
           modalClass: "codebytes-invalid-modal"
         });
-        warningModal.actions.goBackAndFix = () =>
-          this.send("closeModal");
       } else {
         this._super(...args);
       }
