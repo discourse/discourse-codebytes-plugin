@@ -11,6 +11,6 @@
   "author": "Codecademy Engineers <dev@codecademy.com>",
   "license": "MIT",
   "devDependencies": {
-    "eslint-config-discourse": "^2.0.0"
+    "eslint-config-discourse": "^3.4.0"
   }
 }

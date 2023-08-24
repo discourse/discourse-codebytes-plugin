@@ -161,6 +161,7 @@ function initializeCodeByte(api) {
 
       const params = [];
       params.push(`lang=${language}`);
+      // eslint-disable-next-line no-undef
       params.push(`text=${Base64.encodeURI(text)}`);
 
       params.push(`client-name=forum`);
@@ -194,7 +195,7 @@ function initializeCodeByte(api) {
             decoratorHelper.getModel().urlWithNumber
           }`
         : document.location.href;
-      elem.querySelectorAll("div.d-codebyte").forEach(async (div, index) => {
+      elem.querySelectorAll("div.d-codebyte").forEach(async (div) => {
         const codebyteFrame = await renderCodebyteFrame(
           div.dataset.language,
           div.textContent.trim(),
@@ -222,15 +223,18 @@ function initializeCodeByte(api) {
   );
 
   api.composerBeforeSave(() => {
+    // eslint-disable-next-line no-restricted-globals
     return new Promise((resolve, reject) => {
       const composerModel = api.container.lookup("controller:composer").model;
 
       let allCodebytesAreValid = true;
       let index = 0;
+      // eslint-disable-next-line no-unused-vars
       let start, end;
       const inputLines = composerModel.reply.split("\n");
 
       do {
+        // eslint-disable-next-line no-unused-vars
         [start, end] = findCodeByte(inputLines, index);
         index++;
         if (
