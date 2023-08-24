@@ -1,10 +1,11 @@
-import loadScript from 'discourse/lib/load-script';
-import { withPluginApi } from 'discourse/lib/plugin-api';
-import showModal from "discourse/lib/show-modal";
+import loadScript from "discourse/lib/load-script";
+import { withPluginApi } from "discourse/lib/plugin-api";
+import I18n from "I18n";
 
-export const CODEBYTE_OPEN_TAG_REGEX = /^\[codebyte.*]$/
-export const CODEBYTE_OPEN_TAG_WITH_LANG_REGEX = /^\[codebyte[ ]+language=([^\s]+?)[ ]*]$/
-export const CODEBYTE_CLOSE_TAG_REGEX = /^\[\/codebyte]$/
+export const CODEBYTE_OPEN_TAG_REGEX = /^\[codebyte.*]$/;
+export const CODEBYTE_OPEN_TAG_WITH_LANG_REGEX =
+  /^\[codebyte[ ]+language=([^\s]+?)[ ]*]$/;
+export const CODEBYTE_CLOSE_TAG_REGEX = /^\[\/codebyte]$/;
 
 export function findCodeByte(lines = [], index) {
   const startTagLines = [];
@@ -17,7 +18,7 @@ export function findCodeByte(lines = [], index) {
     } else if (line.match(CODEBYTE_CLOSE_TAG_REGEX) && startTagLines.length) {
       const start = startTagLines.pop();
       if (startTagLines.length === 0) {
-        matchIndex++
+        matchIndex++;
       }
       if (matchIndex === index) {
         range.push(start, lineNumber);
@@ -34,43 +35,45 @@ function initializeCodeByte(api) {
     toolbar.groups.lastObject.lastGroup = false;
 
     toolbar.groups.addObject({
-      group: 'codecademy',
+      group: "codecademy",
       buttons: [],
       lastGroup: true,
     });
 
     toolbar.addButton({
-      id: 'codebyte',
-      title: 'composer.codebyte',
-      group: 'codecademy',
-      icon: 'codecademy-logo',
-      className: 'codecademy-codebyte-discourse-btn',
-      action: () => toolbar.context.send('insertCodeByte'),
+      id: "codebyte",
+      title: "composer.codebyte",
+      group: "codecademy",
+      icon: "codecademy-logo",
+      className: "codecademy-codebyte-discourse-btn",
+      action: () => toolbar.context.send("insertCodeByte"),
     });
   });
 
-  api.modifyClass('component:d-editor', {
+  api.modifyClass("component:d-editor", {
+    pluginId: "discourse-codebytes-plugin",
+
     init() {
       this._super(...arguments);
 
       this.onSaveResponse = (message) => {
         if (message.data.codeByteSaveResponse) {
           const editableCodebyteFrames = this.element?.querySelectorAll(
-            '.d-editor-preview .d-codebyte iframe'
+            ".d-editor-preview .d-codebyte iframe"
           );
 
           if (!editableCodebyteFrames) {
             return;
           }
 
-          const codebyteWindows = Array.from(
-            editableCodebyteFrames
-          ).map((frame) => frame.contentWindow);
+          const codebyteWindows = Array.from(editableCodebyteFrames).map(
+            (frame) => frame.contentWindow
+          );
 
           const index = codebyteWindows.indexOf(message.source);
           if (index >= 0) {
             this.send(
-              'updateCodeByte',
+              "updateCodeByte",
               index,
               message.data.codeByteSaveResponse
             );
@@ -78,28 +81,28 @@ function initializeCodeByte(api) {
         }
       };
 
-      window.addEventListener('message', this.onSaveResponse, false);
+      window.addEventListener("message", this.onSaveResponse, false);
     },
 
     willDestroyElement() {
       this._super(...arguments);
-      window.removeEventListener('message', this.onSaveResponse, false);
+      window.removeEventListener("message", this.onSaveResponse, false);
     },
 
     actions: {
       insertCodeByte() {
-        let exampleFormat = '[codebyte]\n\n[/codebyte]';
-        let startTag = '[codebyte]\n';
-        let endTag = '\n[/codebyte]';
+        let exampleFormat = "[codebyte]\n\n[/codebyte]";
+        let startTag = "[codebyte]\n";
+        let endTag = "\n[/codebyte]";
 
-        const lineValueSelection = this.getSelected('', { lineVal: true });
+        const lineValueSelection = this.getSelected("", { lineVal: true });
         const selection = this.getSelected();
         const addBlockInSameline = lineValueSelection.lineVal.length === 0;
         const isTextSelected = selection.value.length > 0;
         const isWholeLineSelected =
           lineValueSelection.lineVal === lineValueSelection.value;
-        const isBeginningOfLineSelected = lineValueSelection.pre.trim() === '';
-        const newLineAfterSelection = selection.post[0] === '\n';
+        const isBeginningOfLineSelected = lineValueSelection.pre.trim() === "";
+        const newLineAfterSelection = selection.post[0] === "\n";
 
         if (isTextSelected) {
           if (
@@ -109,47 +112,56 @@ function initializeCodeByte(api) {
               isBeginningOfLineSelected
             )
           ) {
-            startTag = '\n' + startTag;
+            startTag = "\n" + startTag;
           }
           if (!newLineAfterSelection) {
-            endTag = endTag + '\n';
+            endTag = endTag + "\n";
           }
           this.set(
-            'value',
+            "value",
             `${selection.pre}${startTag}${selection.value}${endTag}${selection.post}`
           );
         } else {
           if (!addBlockInSameline) {
-            exampleFormat = '\n' + exampleFormat;
+            exampleFormat = "\n" + exampleFormat;
           }
           if (!newLineAfterSelection) {
-            exampleFormat = exampleFormat + '\n';
+            exampleFormat = exampleFormat + "\n";
           }
           this.insertText(exampleFormat);
         }
       },
       updateCodeByte(index, { text, language }) {
-        const lines = this.get('value').split('\n');
+        const lines = this.get("value").split("\n");
         const [start, end] = findCodeByte(lines, index);
 
         if (start !== undefined && end !== undefined) {
-          const replacementLines = [`[codebyte language=${language}]`, ...text.split('\n')];
+          const replacementLines = [
+            `[codebyte language=${language}]`,
+            ...text.split("\n"),
+          ];
           lines.splice(start, end - start, ...replacementLines);
         }
-        this.set('value', lines.join('\n'));
+        this.set("value", lines.join("\n"));
       },
     },
   });
 
-  function renderCodebyteFrame(language = '', text = '', isPreview = false, postUrl = '') {
+  function renderCodebyteFrame(
+    language = "",
+    text = "",
+    isPreview = false,
+    postUrl = ""
+  ) {
     return loadScript(
-      'https://cdn.jsdelivr.net/npm/js-base64@3.6.0/base64.min.js'
+      "https://cdn.jsdelivr.net/npm/js-base64@3.6.0/base64.min.js"
     ).then(() => {
-      const frame = document.createElement('iframe');
-      frame.allow = 'clipboard-write';
+      const frame = document.createElement("iframe");
+      frame.allow = "clipboard-write";
 
       const params = [];
       params.push(`lang=${language}`);
+      // eslint-disable-next-line no-undef
       params.push(`text=${Base64.encodeURI(text)}`);
 
       params.push(`client-name=forum`);
@@ -158,14 +170,16 @@ function initializeCodeByte(api) {
         params.push(`mode=compose`);
       }
 
-      frame.src = `https://www.codecademy.com/codebyte-editor?${params.join('&')}`;
+      frame.src = `https://www.codecademy.com/codebyte-editor?${params.join(
+        "&"
+      )}`;
 
       Object.assign(frame.style, {
-        display: 'block',
-        height: '400px',
-        width: '100%',
-        maxWidth: '712px',
-        marginBottom: '24px',
+        display: "block",
+        height: "400px",
+        width: "100%",
+        maxWidth: "712px",
+        marginBottom: "24px",
         border: 0,
       });
 
@@ -173,73 +187,86 @@ function initializeCodeByte(api) {
     });
   }
 
-  api.decorateCookedElement((elem, decoratorHelper) => {
-    const isPreview = elem.classList.contains('d-editor-preview');
-    const postUrl = decoratorHelper
-      ? `${document.location.origin}${decoratorHelper.getModel().urlWithNumber}`
-      : document.location.href;
-    elem.querySelectorAll('div.d-codebyte').forEach(async (div, index) => {
-      const codebyteFrame = await renderCodebyteFrame(
-        div.dataset.language,
-        div.textContent.trim(),
-        isPreview,
-        postUrl
-      );
-      div.innerHTML = '';
-      div.appendChild(codebyteFrame);
+  api.decorateCookedElement(
+    (elem, decoratorHelper) => {
+      const isPreview = elem.classList.contains("d-editor-preview");
+      const postUrl = decoratorHelper
+        ? `${document.location.origin}${
+            decoratorHelper.getModel().urlWithNumber
+          }`
+        : document.location.href;
+      elem.querySelectorAll("div.d-codebyte").forEach(async (div) => {
+        const codebyteFrame = await renderCodebyteFrame(
+          div.dataset.language,
+          div.textContent.trim(),
+          isPreview,
+          postUrl
+        );
+        div.innerHTML = "";
+        div.appendChild(codebyteFrame);
 
-      if (isPreview) {
-        const saveButton = document.createElement('button');
-        saveButton.className = 'btn-primary';
-        saveButton.textContent = 'Save to post';
-        saveButton.style.marginBottom = '24px';
-        saveButton.onclick = () =>
-          codebyteFrame.contentWindow.postMessage(
-            { codeByteSaveRequest: true },
-            '*'
-          );
-        div.appendChild(saveButton);
-      }
-    });
-  },
-  { id: 'codebyte-preview' });
+        if (isPreview) {
+          const saveButton = document.createElement("button");
+          saveButton.className = "btn-primary";
+          saveButton.textContent = "Save to post";
+          saveButton.style.marginBottom = "24px";
+          saveButton.onclick = () =>
+            codebyteFrame.contentWindow.postMessage(
+              { codeByteSaveRequest: true },
+              "*"
+            );
+          div.appendChild(saveButton);
+        }
+      });
+    },
+    { id: "codebyte-preview" }
+  );
 
-  api.modifyClass("controller:composer", {
-    save(...args) {
+  api.composerBeforeSave(() => {
+    // eslint-disable-next-line no-restricted-globals
+    return new Promise((resolve, reject) => {
+      const composerModel = api.container.lookup("controller:composer").model;
+
       let allCodebytesAreValid = true;
       let index = 0;
+      // eslint-disable-next-line no-unused-vars
       let start, end;
-      const inputLines = this.model.reply.split('\n');
+      const inputLines = composerModel.reply.split("\n");
 
       do {
+        // eslint-disable-next-line no-unused-vars
         [start, end] = findCodeByte(inputLines, index);
         index++;
-        if (start !== undefined && !inputLines[start].match(CODEBYTE_OPEN_TAG_WITH_LANG_REGEX)) {
+        if (
+          start !== undefined &&
+          !inputLines[start].match(CODEBYTE_OPEN_TAG_WITH_LANG_REGEX)
+        ) {
           allCodebytesAreValid = false;
         }
-      } while (allCodebytesAreValid && start !== undefined)
+      } while (allCodebytesAreValid && start !== undefined);
 
       if (!allCodebytesAreValid) {
-        const warningModal = showModal("invalidCodebyteModal", {
-          model: this.model,
-          modalClass: "codebytes-invalid-modal"
+        const dialog = api.container.lookup("service:dialog");
+
+        dialog.alert({
+          title: I18n.t("codebytes_modal.title"),
+          message: I18n.t("codebytes_modal.content"),
         });
-        warningModal.actions.goBackAndFix = () =>
-          this.send("closeModal");
-      } else {
-        this._super(...args);
+        return reject();
       }
-    }
+
+      return resolve();
+    });
   });
 }
 
 export default {
-  name: 'code-bytes',
+  name: "code-bytes",
 
   initialize(container) {
-    const siteSettings = container.lookup('site-settings:main');
+    const siteSettings = container.lookup("site-settings:main");
     if (siteSettings.code_bytes_enabled) {
-      withPluginApi('0.8.31', initializeCodeByte);
+      withPluginApi("0.8.31", initializeCodeByte);
     }
   },
 };

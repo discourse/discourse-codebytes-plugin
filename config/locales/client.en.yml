@@ -2,7 +2,7 @@ en:
   js:
     composer:
       codebyte: "Create a Codebyte"
-    modal:
+    codebytes_modal:
       title: "Please select a language"
       content: "Your post includes one or more Codebytes that has no language selected. You can select a language for each Codebyte in the preview panel on the right."
       button: "Ok"
