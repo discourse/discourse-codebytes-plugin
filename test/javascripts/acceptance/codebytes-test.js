@@ -1,17 +1,17 @@
 import {
-  acceptance,
-  exists,
-  queryAll,
-  visible,
-} from "discourse/tests/helpers/qunit-helpers";
-import { test } from "qunit";
-import {
   click,
   currentURL,
   fillIn,
   triggerEvent,
   visit,
 } from "@ember/test-helpers";
+import { test } from "qunit";
+import {
+  acceptance,
+  exists,
+  queryAll,
+  visible,
+} from "discourse/tests/helpers/qunit-helpers";
 
 acceptance("CodeBytes", function (needs) {
   needs.user();
