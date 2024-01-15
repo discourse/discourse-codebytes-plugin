@@ -264,7 +264,7 @@ export default {
   name: "code-bytes",
 
   initialize(container) {
-    const siteSettings = container.lookup("site-settings:main");
+    const siteSettings = container.lookup("service:site-settings");
     if (siteSettings.code_bytes_enabled) {
       withPluginApi("0.8.31", initializeCodeByte);
     }
