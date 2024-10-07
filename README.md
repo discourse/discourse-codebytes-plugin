@@ -51,7 +51,7 @@ Acceptance tests are run by qunit from the discourse root and are located in `te
 - for unit tests: `*.test.js`
 - for acceptance tests: `*-test.js`
 
-unit tests can be run via `yarn test`. The easiest way to run acceptance tests is to run the discourse server and go to http://localhost:3000/qunit?module=Acceptance%3A%20CodeBytes in your web browser
+unit tests can be run via `pnpm test`. The easiest way to run acceptance tests is to run the discourse server and go to http://localhost:3000/qunit?module=Acceptance%3A%20CodeBytes in your web browser
 
 ### Further Resources
 - [Beginner's Guide to Creating Discourse Plugins](https://meta.discourse.org/t/beginners-guide-to-creating-discourse-plugins-part-1/30515)
