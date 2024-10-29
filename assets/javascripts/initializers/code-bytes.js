@@ -95,8 +95,10 @@ function initializeCodeByte(api) {
         let startTag = "[codebyte]\n";
         let endTag = "\n[/codebyte]";
 
-        const lineValueSelection = this.getSelected("", { lineVal: true });
-        const selection = this.getSelected();
+        const lineValueSelection = this.textManipulation.getSelected("", {
+          lineVal: true,
+        });
+        const selection = this.textManipulation.getSelected();
         const addBlockInSameline = lineValueSelection.lineVal.length === 0;
         const isTextSelected = selection.value.length > 0;
         const isWholeLineSelected =
@@ -128,7 +130,7 @@ function initializeCodeByte(api) {
           if (!newLineAfterSelection) {
             exampleFormat = exampleFormat + "\n";
           }
-          this.insertText(exampleFormat);
+          this.textManipulation.insertText(exampleFormat);
         }
       },
       updateCodeByte(index, { text, language }) {
