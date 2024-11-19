@@ -225,13 +225,12 @@ function initializeCodeByte(api) {
   );
 
   api.composerBeforeSave(() => {
-    // eslint-disable-next-line no-restricted-globals
     return new Promise((resolve, reject) => {
       const composerModel = api.container.lookup("controller:composer").model;
 
       let allCodebytesAreValid = true;
       let index = 0;
-      // eslint-disable-next-line no-unused-vars
+
       let start, end;
       const inputLines = composerModel.reply.split("\n");
 
