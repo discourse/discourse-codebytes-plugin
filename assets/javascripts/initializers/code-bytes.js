@@ -226,7 +226,7 @@ function initializeCodeByte(api) {
 
   api.composerBeforeSave(() => {
     return new Promise((resolve, reject) => {
-      const composerModel = api.container.lookup("controller:composer").model;
+      const composerModel = api.container.lookup("service:composer").model;
 
       let allCodebytesAreValid = true;
       let index = 0;
