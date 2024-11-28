@@ -124,7 +124,7 @@ acceptance("CodeBytes", function (needs) {
     );
 
     await click(".dialog-footer .btn-primary");
-    assert.ok(!visible(".dialog-body"), "the dialog has been closed");
+    assert.notOk(visible(".dialog-body"), "the dialog has been closed");
 
     await fillIn(
       ".d-editor-input",
@@ -143,8 +143,8 @@ acceptance("CodeBytes", function (needs) {
       "[codebyte language=python]\nprint(hello)\n[/codebyte]"
     );
     await click("#reply-control button.create");
-    assert.ok(
-      !visible(".dialog-body"),
+    assert.notOk(
+      visible(".dialog-body"),
       "the dialog is not shown if the codebyte is valid"
     );
 
