@@ -1,3 +1,4 @@
+import { action } from "@ember/object";
 import loadScript from "discourse/lib/load-script";
 import { withPluginApi } from "discourse/lib/plugin-api";
 import I18n from "I18n";
@@ -50,104 +51,108 @@ function initializeCodeByte(api) {
     });
   });
 
-  api.modifyClass("component:d-editor", {
-    pluginId: "discourse-codebytes-plugin",
+  api.modifyClass(
+    "component:d-editor",
+    (Superclass) =>
+      class extends Superclass {
+        init() {
+          super.init(...arguments);
 
-    init() {
-      this._super(...arguments);
+          this.onSaveResponse = (message) => {
+            if (message.data.codeByteSaveResponse) {
+              const editableCodebyteFrames = this.element?.querySelectorAll(
+                ".d-editor-preview .d-codebyte iframe"
+              );
 
-      this.onSaveResponse = (message) => {
-        if (message.data.codeByteSaveResponse) {
-          const editableCodebyteFrames = this.element?.querySelectorAll(
-            ".d-editor-preview .d-codebyte iframe"
-          );
+              if (!editableCodebyteFrames) {
+                return;
+              }
 
-          if (!editableCodebyteFrames) {
-            return;
-          }
+              const codebyteWindows = Array.from(editableCodebyteFrames).map(
+                (frame) => frame.contentWindow
+              );
 
-          const codebyteWindows = Array.from(editableCodebyteFrames).map(
-            (frame) => frame.contentWindow
-          );
+              const index = codebyteWindows.indexOf(message.source);
+              if (index >= 0) {
+                this.send(
+                  "updateCodeByte",
+                  index,
+                  message.data.codeByteSaveResponse
+                );
+              }
+            }
+          };
 
-          const index = codebyteWindows.indexOf(message.source);
-          if (index >= 0) {
-            this.send(
-              "updateCodeByte",
-              index,
-              message.data.codeByteSaveResponse
+          window.addEventListener("message", this.onSaveResponse, false);
+        }
+
+        willDestroyElement() {
+          super.willDestroyElement(...arguments);
+          window.removeEventListener("message", this.onSaveResponse, false);
+        }
+
+        @action
+        insertCodeByte() {
+          let exampleFormat = "[codebyte]\n\n[/codebyte]";
+          let startTag = "[codebyte]\n";
+          let endTag = "\n[/codebyte]";
+
+          const lineValueSelection = this.textManipulation.getSelected("", {
+            lineVal: true,
+          });
+          const selection = this.textManipulation.getSelected();
+          const addBlockInSameline = lineValueSelection.lineVal.length === 0;
+          const isTextSelected = selection.value.length > 0;
+          const isWholeLineSelected =
+            lineValueSelection.lineVal === lineValueSelection.value;
+          const isBeginningOfLineSelected =
+            lineValueSelection.pre.trim() === "";
+          const newLineAfterSelection = selection.post[0] === "\n";
+
+          if (isTextSelected) {
+            if (
+              !(
+                addBlockInSameline ||
+                isWholeLineSelected ||
+                isBeginningOfLineSelected
+              )
+            ) {
+              startTag = "\n" + startTag;
+            }
+            if (!newLineAfterSelection) {
+              endTag = endTag + "\n";
+            }
+            this.set(
+              "value",
+              `${selection.pre}${startTag}${selection.value}${endTag}${selection.post}`
             );
+          } else {
+            if (!addBlockInSameline) {
+              exampleFormat = "\n" + exampleFormat;
+            }
+            if (!newLineAfterSelection) {
+              exampleFormat = exampleFormat + "\n";
+            }
+            this.textManipulation.insertText(exampleFormat);
           }
         }
-      };
 
-      window.addEventListener("message", this.onSaveResponse, false);
-    },
+        @action
+        updateCodeByte(index, { text, language }) {
+          const lines = this.get("value").split("\n");
+          const [start, end] = findCodeByte(lines, index);
 
-    willDestroyElement() {
-      this._super(...arguments);
-      window.removeEventListener("message", this.onSaveResponse, false);
-    },
-
-    actions: {
-      insertCodeByte() {
-        let exampleFormat = "[codebyte]\n\n[/codebyte]";
-        let startTag = "[codebyte]\n";
-        let endTag = "\n[/codebyte]";
-
-        const lineValueSelection = this.textManipulation.getSelected("", {
-          lineVal: true,
-        });
-        const selection = this.textManipulation.getSelected();
-        const addBlockInSameline = lineValueSelection.lineVal.length === 0;
-        const isTextSelected = selection.value.length > 0;
-        const isWholeLineSelected =
-          lineValueSelection.lineVal === lineValueSelection.value;
-        const isBeginningOfLineSelected = lineValueSelection.pre.trim() === "";
-        const newLineAfterSelection = selection.post[0] === "\n";
-
-        if (isTextSelected) {
-          if (
-            !(
-              addBlockInSameline ||
-              isWholeLineSelected ||
-              isBeginningOfLineSelected
-            )
-          ) {
-            startTag = "\n" + startTag;
+          if (start !== undefined && end !== undefined) {
+            const replacementLines = [
+              `[codebyte language=${language}]`,
+              ...text.split("\n"),
+            ];
+            lines.splice(start, end - start, ...replacementLines);
           }
-          if (!newLineAfterSelection) {
-            endTag = endTag + "\n";
-          }
-          this.set(
-            "value",
-            `${selection.pre}${startTag}${selection.value}${endTag}${selection.post}`
-          );
-        } else {
-          if (!addBlockInSameline) {
-            exampleFormat = "\n" + exampleFormat;
-          }
-          if (!newLineAfterSelection) {
-            exampleFormat = exampleFormat + "\n";
-          }
-          this.textManipulation.insertText(exampleFormat);
+          this.set("value", lines.join("\n"));
         }
-      },
-      updateCodeByte(index, { text, language }) {
-        const lines = this.get("value").split("\n");
-        const [start, end] = findCodeByte(lines, index);
-
-        if (start !== undefined && end !== undefined) {
-          const replacementLines = [
-            `[codebyte language=${language}]`,
-            ...text.split("\n"),
-          ];
-          lines.splice(start, end - start, ...replacementLines);
-        }
-        this.set("value", lines.join("\n"));
-      },
-    },
-  });
+      }
+  );
 
   function renderCodebyteFrame(
     language = "",
