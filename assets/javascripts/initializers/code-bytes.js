@@ -1,7 +1,7 @@
 import { action } from "@ember/object";
 import loadScript from "discourse/lib/load-script";
 import { withPluginApi } from "discourse/lib/plugin-api";
-import I18n from "I18n";
+import { i18n } from "discourse-i18n";
 
 export const CODEBYTE_OPEN_TAG_REGEX = /^\[codebyte.*]$/;
 export const CODEBYTE_OPEN_TAG_WITH_LANG_REGEX =
@@ -255,8 +255,8 @@ function initializeCodeByte(api) {
         const dialog = api.container.lookup("service:dialog");
 
         dialog.alert({
-          title: I18n.t("codebytes_modal.title"),
-          message: I18n.t("codebytes_modal.content"),
+          title: i18n("codebytes_modal.title"),
+          message: i18n("codebytes_modal.content"),
         });
         return reject();
       }
