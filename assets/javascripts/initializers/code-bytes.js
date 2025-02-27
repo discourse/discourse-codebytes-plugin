@@ -197,10 +197,9 @@ function initializeCodeByte(api) {
   api.decorateCookedElement(
     (elem, decoratorHelper) => {
       const isPreview = elem.classList.contains("d-editor-preview");
-      const postUrl = decoratorHelper
-        ? `${document.location.origin}${
-            decoratorHelper.getModel().urlWithNumber
-          }`
+      const post = decoratorHelper?.getModel();
+      const postUrl = post
+        ? `${document.location.origin}${post.urlWithNumber}`
         : document.location.href;
       elem.querySelectorAll("div.d-codebyte").forEach(async (div) => {
         const codebyteFrame = await renderCodebyteFrame(
