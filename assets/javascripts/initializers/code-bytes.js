@@ -35,7 +35,7 @@ function initializeCodeByte(api) {
   api.onToolbarCreate((toolbar) => {
     toolbar.groups.lastObject.lastGroup = false;
 
-    toolbar.groups.addObject({
+    toolbar.groups.push({
       group: "codecademy",
       buttons: [],
       lastGroup: true,
