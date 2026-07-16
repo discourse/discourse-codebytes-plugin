@@ -33,7 +33,7 @@ export function findCodeByte(lines = [], index) {
 
 function initializeCodeByte(api) {
   api.onToolbarCreate((toolbar) => {
-    toolbar.groups.lastObject.lastGroup = false;
+    toolbar.groups.at(-1).lastGroup = false;
 
     toolbar.groups.push({
       group: "codecademy",
